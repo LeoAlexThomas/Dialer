@@ -1,109 +1,34 @@
 // Build-in packages
-import 'dart:async';
+import 'package:dailerapp/model/callLog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:call_log/call_log.dart';
 
-import 'package:permission_handler/permission_handler.dart';
 // Model classes Import
 import 'package:dailerapp/model/callDetail.dart';
-import 'package:dailerapp/model/callLog.dart';
-// Storage import
-import 'package:dailerapp/storage/cloudStorage.dart';
-import 'package:dailerapp/storage/localstorage.dart';
 // Widgets import
 import 'package:dailerapp/widget/callType.dart';
 import 'package:dailerapp/widget/circleavatar.dart';
 import 'package:dailerapp/widget/dialpad.dart';
 import 'package:dailerapp/widget/refreshwidget.dart';
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key}) : super(key: key);
+class RecentCalls extends StatefulWidget {
+  final Future Function() updateCalLog;
+  final Future<Iterable<CallLogEntry>> entries;
+
+  RecentCalls({Key? key, required this.entries, required this.updateCalLog})
+      : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _RecentCallsState createState() => _RecentCallsState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+class _RecentCallsState extends State<RecentCalls> {
   var scrHeight;
   var scrWidth;
   var fontHeight;
 
-  // Call Log entry
-  late Future<Iterable<CallLogEntry>> entries;
-  // Connectivity State subscription
-  late StreamSubscription subscription;
-
-  // Objects for classes
   CallLogger callLog = new CallLogger();
-  final store = LocalStorage();
-  final cloudStore = CloudStorage();
-  final connectivity = Connectivity();
-
-  // Text Controller for mobile number entry
-  final phonenumberCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance!.addObserver(this);
-    entries = callLog.getCallLogs();
-
-    // detecting network connection avaliable if connection state changes to
-    // mobile network or wifi call log will uploaded to cloud
-    subscription = connectivity.onConnectivityChanged
-        .listen((ConnectivityResult connectivityResult) {
-      if (connectivityResult != ConnectivityResult.none) {
-        var data = callLog.getCallLogs();
-        if (data != null) {
-          print('upload started');
-          cloudStore.writeStorage(data);
-          print('upload done');
-        }
-      } else {
-        print('connection disconnected');
-      }
-    });
-    // Writing locally after call log is updated
-    writeLocal();
-  }
-
-  // Store call log locally
-  writeLocal() {
-    entries.then((value) {
-      store.writeCallLog(value);
-    });
-  }
-
-  // getting Call Log
-  Future getData() async {
-    if (await Permission.phone.request().isGranted)
-      entries = callLog.getCallLogs();
-    else {
-      getData();
-    }
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    subscription.cancel();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    getData();
-    writeLocal();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    getData();
-    writeLocal();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,14 +38,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     return SafeArea(
       child: Scaffold(
         body: Container(
-          height: scrHeight * 95,
+          // height: scrHeight * 95,
           // ignore: unnecessary_null_comparison
-          child: entries == null
+          child: widget.entries == null
               ? Center(
                   child: CircularProgressIndicator(),
                 )
               : FutureBuilder(
-                  future: entries,
+                  future: widget.entries,
                   initialData: Center(
                     child: CircularProgressIndicator(),
                   ),
@@ -134,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                         );
                       } else {
                         return RefreshWidget(
-                          onRefresh: getData,
+                          onRefresh: widget.updateCalLog,
                           child: ListView.builder(
                             itemCount: log.length,
                             itemBuilder: (BuildContext context, int index) {
