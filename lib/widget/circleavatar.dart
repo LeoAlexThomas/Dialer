@@ -27,7 +27,7 @@ class CustomAvatar extends StatelessWidget {
 
   bool isNumeric(String str) {
     try {
-      var value = double.parse(str);
+      double.parse(str);
       return true;
     } on FormatException {
       if (str.contains('+')) {

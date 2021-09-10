@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:contacts_service/contacts_service.dart';
+import 'package:dailerapp/screen/contactDetails.dart';
 import 'package:flutter/material.dart';
 
 class ContactTab extends StatefulWidget {
@@ -21,11 +24,20 @@ class _ContactTabState extends State<ContactTab> {
             : ListView.builder(
                 itemCount: widget.contacts.length,
                 itemBuilder: (BuildContext context, int index) {
+                  Contact contact = widget.contacts.elementAt(index);
+                  Uint8List avatar = contact.avatar!;
+                  String name = contact.displayName!;
                   return ListTile(
-                    title: Text(widget.contacts.elementAt(index).displayName ??
-                        'unknown'),
-                    subtitle: Text(
-                        widget.contacts.elementAt(index).phones!.last.value!),
+                    leading: CircleAvatar(
+                        child: avatar.length == 0
+                            ? Icon(Icons.person)
+                            : Image.memory(avatar)),
+                    onTap: () => showModalBottomSheet(
+                        context: context,
+                        builder: (context) => ContactDetails(
+                              contact: contact,
+                            )),
+                    title: Text(name),
                   );
                 },
               ),

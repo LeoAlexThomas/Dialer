@@ -25,7 +25,7 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
   late Future<Iterable<CallLogEntry>> entries;
 
   //BottomNav Bar Index
-  int d_btIdx = 0;
+  int btIdx = 0;
 
 // Contacts
   Iterable<Contact> contacts = [];
@@ -138,7 +138,7 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
           //   ),
           // ],
         ),
-        body: d_btIdx == 0
+        body: btIdx == 0
             ? RecentCalls(entries: entries, updateCalLog: () => getData())
             : ContactTab(contacts: contacts),
         extendBody: true,
@@ -148,9 +148,9 @@ class _HomepageState extends State<Homepage> with WidgetsBindingObserver {
             FloatingNavbarItem(icon: Icons.timer),
             FloatingNavbarItem(icon: Icons.contact_phone),
           ],
-          currentIndex: d_btIdx,
+          currentIndex: btIdx,
           onTap: (int val) => setState(() {
-            d_btIdx = val;
+            btIdx = val;
           }),
         ),
       ),
